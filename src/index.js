@@ -2,44 +2,39 @@
 //  where the tutor said that ' daatabse is always in another continent
 //  so dont forget to use Async function '
 import mongoose from "mongoose";
-import {DB_NAME} from "./constants.js";
-
+import { DB_NAME } from "./constants.js";
 
 // 1.clean approach of connection of mongodb
-import express from 'express'
+import express from "express";
 import dotenv from "dotenv";
 import { mongoConnection } from "./db/index.js";
 
-dotenv.config()
+dotenv.config();
 
-const app = express()
+const app = express();
 
+// app.listen(process.env.PORT, () => {
+//   console.log(`PORT is listening on ${process.env.PORT}`);
+// });
 
-app.listen (process.env.PORT,()=>{
- console.log(`PORT is listening on ${process.env.PORT}`);
- 
-})
-  
+//  Register error listener BEFORE server starts
+app.on("error", (error) => {
+    console.log("Eror occured !!!!", error);
+    throw error;
+  })
 
-mongoConnection()
-
-
-
-
-
+mongoConnection().then(() => {
 
 
-
-
-
-
-
-
-
-
-
-
-
+    app.listen(process.env.PORT || 8000, () => {
+      console.log(
+        `mongo DB connection is succesfully connected !!! ${process.env.PORT}`
+      );
+    });
+  })
+  .catch((error) => {
+    console.log("mogoDb connection failed !!!", error);
+  });
 
 // not going to use this approach because this makes the file messy better we create another file which is db/index.js
 // 1 . proffesional coding style
@@ -70,38 +65,22 @@ Connection();
 
 */
 
-
-
-
-
-
-
-
-
-
-
-  //2. it can be done also by without using constants.js 
-
-
+//2. it can be done also by without using constants.js
 
 //      import mongoose from "mongoose"
 //      import dotenv from 'dotenv'
-     
+
 // dotenv.config()
 //      async function Connection (){
 
 //         try {
 //            const result =  await mongoose.connect (process.env.MONGODB_URI)
 //           console.log("connection sucess and Database results",result);
-          
-          
 
 //         } catch (error) {
 //           console.error("database connection failed")
-          
+
 //         }
-
-
 
 //      }
 // Connection()
