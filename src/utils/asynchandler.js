@@ -22,7 +22,7 @@
 // ANOTHER WWAY OF THIS CODE
 
 
-export const asynchandler = (fn)=> {
+ const asynchandler = (fn)=> {
     return (req,res,next)=>{
         Promise.resolve(fn(req,res,next)).catch((error)=>{
             next(error)
@@ -31,3 +31,4 @@ export const asynchandler = (fn)=> {
     }
 
 }
+export  default asynchandler;

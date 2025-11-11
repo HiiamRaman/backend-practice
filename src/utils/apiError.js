@@ -7,15 +7,16 @@ class ApiError extends Error {
   ) {
     super(message); // Call parent Error constructor with the message
     this.statusCode = statusCode; // this actually helps us to set http status code
-    ((this.message = message),
-      (this.errors = errors),
-      (this.stack = stack),
-      (this.success = false)); // set directly, not passed
+    this.message = message; // set the error message
+    this.errors = errors; // set additional errors
+    this.stack = stack; // set custom stack if provided
+    this.success = false; // set directly, not passed
 
     if (stack) {
       this.stack = stack;
     } else {
-      Error.captureStackTrace(this, this.constructor);
+      Error.captureStackTrace(this, this.constructor); 
     }
   }
 }
+export default ApiError
