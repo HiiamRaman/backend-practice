@@ -1,0 +1,47 @@
+
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+cloudinary.config({
+  //cloudinary config
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// cloudinary file upload code
+
+export  const uploadFile = async (filepath) => {
+  try {
+    if (!filepath) {
+      console.log("file path not found!!");
+      return null;
+    } 
+      const result = await cloudinary.uploader.upload(filepath, {
+        resource_type: "auto",
+        
+      });
+    // Delete temp file after success
+
+      if (fs.existsSync(filepath)) {
+
+        fs.unlinkSync(filepath)
+    }
+      console.log("File uploaded  sucessfully!!!", result.secure_url);
+      return result
+    
+  } catch (error) {
+    // now we have to ctach the failed files while uploading and delete it from our server which is stored temporarily
+
+    //  we use fs to unlink
+    
+if (fs.existsSync(filepath)) {
+
+        fs.unlinkSync(filepath)
+    }
+
+  
+
+    console.log("Failed to upload", error);
+    return null;
+  }
+};
