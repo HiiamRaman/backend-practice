@@ -22,3 +22,12 @@ app.use(
 
 app.use(express.static("public")); // this line means Hey Express, whenever someone requests a file that exists in this folder, just send it directly
 app.use(cookieParser())
+
+//import  routes 
+import userRouter  from './routes/user.routes.js'
+app.use('/api/v1/user',userRouter)
+
+
+
+
+
