@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema(
     },
     watchHistory: [
       {
-        type: Schema.Types.Objectid,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Video",
       },
     ],
@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema(
 // so plain text passwords are never stored.
 userSchema.pre("save", async function (next) {
   //basically  this method will keep changing the password if a user makes any changes to prevent this we have to add a condition so encrypt the password only if the password is updated
-  if (!this.isModified(password)) return next();
+  if (!this.isModified("password")) return next();
 
   this.password = await bcrypt.hash(this.password, 10);
   next();
