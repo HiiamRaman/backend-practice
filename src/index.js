@@ -5,13 +5,14 @@ import mongoose from "mongoose";
 import { DB_NAME } from "./constants.js";
 
 // 1.clean approach of connection of mongodb
-import express from "express";
+// import express from "express";  never configure express twice because it doesnot store the previous configurations
 import dotenv from "dotenv";
 import { mongoConnection } from "./db/index.js";
+import app from "./app.js";
 
 dotenv.config();
 
-const app = express();
+// const app = express();
 
 // app.listen(process.env.PORT, () => {
 //   console.log(`PORT is listening on ${process.env.PORT}`);
