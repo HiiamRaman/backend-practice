@@ -1,8 +1,14 @@
 import asynchandler from "../utils/asynchandler.js";
+import ApiResponse from "../utils/apiResponse.js";
+import { uploadFile } from "../utils/fileUpload.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
+
 export const userRegister = asynchandler(async (req, res) => {
   //get user details from frontend
+
+  // -------------------- VALIDATION --------------------
+
   const { fullname, email, username, password } = req.body;
 
   if (fullname === "") {
@@ -19,7 +25,6 @@ export const userRegister = asynchandler(async (req, res) => {
     throw new ApiError(404, "password is requiredd!!");
   }
 
-  //check if the user is already exists
   /*
 const existingUser = await User.findOne({email})
 
@@ -28,18 +33,61 @@ if(existingUser)  throw new ApiError(400,"Email already exist");
 
   //lets try to check either by username or email like insta do
 
-  const existingUser = User.findOne({
+  // -------------------- CHECK IF USER EXISTS --------------------
+  const existingUser = await User.findOne({
     $or: [{ email }, { username }],
   });
+  console.log("existingUser:", existingUser);
 
   if (existingUser) {
-    throw new ApiErrorError(400, "user already exists!");
+    throw new ApiError(409, "user already exists!");
   }
+
+  // check for  the images of the avatar
+  // -------------------- CHECK UPLOADED FILES --------------------
+  const avatarLocalPath = req.files?.avatar[0]?.path;
+  const coverimageLocalPath = req.files?.coverimage[0]?.path;
+  console.log("Avatar Path:", avatarLocalPath);
+  console.log("Cover Image Path:", coverimageLocalPath);
+
+  if (!avatarLocalPath) {
+    throw new ApiError(404, "Avatar is required");
+  }
+
+  //Upload them to Cloudinary(fileUpload.js)
+  // -------------------- UPLOAD TO CLOUD --------------------
+
+  const avatar = await uploadFile(avatarLocalPath); //uploadFile is that file we made for uploading on file fileUpload
+
+  const coverimage = await uploadFile(coverimageLocalPath);
+  if (!avatar) {
+    throw new ApiError(400, "Avatar image is required");
+  }
+
+  // create userobj and database entry
+  // -------------------- CREATE USER  and Validation--------------------
+  const user = await User.create({
+    fullname,
+    avatar: avatar.url,
+    coverimage: coverimage.url || "",
+    email,
+    password,
+    username: username.toLowerCase(),
+  });
+
+  const createdUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+  if (!createdUser) {
+    throw new ApiError(500, "Something went erong while creating user");
+  }
+
+  //// -------------------- RETURN RESPONSE --------------------
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, createdUser, "user registered succesfully!!!"));
 });
-
-
-
-
 
 /*
 Guidelines for Writing Controllers

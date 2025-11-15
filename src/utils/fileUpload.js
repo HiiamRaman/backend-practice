@@ -10,21 +10,21 @@ cloudinary.config({
 
 // cloudinary file upload code
 
-export  const uploadFile = async (filepath) => {
+export  const uploadFile = async (localFilePath) => {
   try {
-    if (!filepath) {
+    if (!localFilePath) {
       console.log("file path not found!!");
       return null;
     } 
-      const result = await cloudinary.uploader.upload(filepath, {
+      const result = await cloudinary.uploader.upload(localFilePath, {
         resource_type: "auto",
         
       });
     // Delete temp file after success
 
-      if (fs.existsSync(filepath)) {
+      if (fs.existsSync(localFilePath)) {
 
-        fs.unlinkSync(filepath)
+        fs.unlinkSync(localFilePath)
     }
       console.log("File uploaded  sucessfully!!!", result.secure_url);
       return result
@@ -34,9 +34,9 @@ export  const uploadFile = async (filepath) => {
 
     //  we use fs to unlink
     
-if (fs.existsSync(filepath)) {
+if (fs.existsSync(localFilePath)) {
 
-        fs.unlinkSync(filepath)
+        fs.unlinkSync(localFilePath)
     }
 
   
