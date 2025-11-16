@@ -51,13 +51,17 @@ if(existingUser)  throw new ApiError(400,"Email already exist");
   console.log("Files received:", req.files);
 console.log("Body received:", req.body);
 
-  const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverimageLocalPath = req.files?.coverimage[0]?.path;
+  const avatarLocalPath = req.files?.avatar?.[0]?.path 
 
-
+    
   if (!avatarLocalPath) {
     throw new ApiError(404, "Avatar is required");
   }
+
+  //This type of code is used when uploading the image is optional, not required.(Cover image)
+  const coverimageLocalPath = req.files?.coverimage?.[0]?.path || '';
+
+
 
   //Upload them to Cloudinary(fileUpload.js)
   // -------------------- UPLOAD TO CLOUD --------------------
@@ -74,7 +78,7 @@ console.log("Body received:", req.body);
   const user = await User.create({
     fullname,
     avatar: avatar.url,
-    coverimage: coverimage.url || "",
+    coverimage: coverimage?.url || "",  
     email,
     password,
     username: username.toLowerCase(),
