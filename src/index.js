@@ -7,10 +7,12 @@ import { DB_NAME } from "./constants.js";
 // 1.clean approach of connection of mongodb
 // import express from "express";  never configure express twice because it doesnot store the previous configurations
 import dotenv from "dotenv";
+
+dotenv.config({ path: "./.env" });
 import { mongoConnection } from "./db/index.js";
 import app from "./app.js";
 
-dotenv.config();
+
 
 // const app = express();
 
@@ -39,7 +41,7 @@ mongoConnection()
 // not going to use this approach because this makes the file messy better we create another file which is db/index.js
 // 1 . proffesional coding style
 /* dotenv.config();
-const app  = express()
+
 async function Connection() {
   try {
     await mongoose.connect(`${process.env.MONGODB_URI }/${DB_NAME}`);

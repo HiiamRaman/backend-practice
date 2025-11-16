@@ -4,6 +4,7 @@ import { uploadFile } from "../utils/fileUpload.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 
+
 export const userRegister = asynchandler(async (req, res) => {
   //get user details from frontend
 
@@ -45,10 +46,14 @@ if(existingUser)  throw new ApiError(400,"Email already exist");
 
   // check for  the images of the avatar
   // -------------------- CHECK UPLOADED FILES --------------------
+
+  
+  console.log("Files received:", req.files);
+console.log("Body received:", req.body);
+
   const avatarLocalPath = req.files?.avatar[0]?.path;
   const coverimageLocalPath = req.files?.coverimage[0]?.path;
-  console.log("Avatar Path:", avatarLocalPath);
-  console.log("Cover Image Path:", coverimageLocalPath);
+
 
   if (!avatarLocalPath) {
     throw new ApiError(404, "Avatar is required");
@@ -90,58 +95,131 @@ if(existingUser)  throw new ApiError(400,"Email already exist");
 });
 
 /*
-Guidelines for Writing Controllers
+// Guidelines for Writing Controllers
 
-When creating a controller (e.g., userRegister), follow these best practices:
+// When creating a controller (e.g., userRegister), follow these best practices:
 
-Purpose
+// Purpose
 
-Clearly define what the controller should do.
+// Clearly define what the controller should do.
 
-Specify expected inputs and outputs.
-Example: userRegister receives name, email, and password, and returns a success message or error.
+// Specify expected inputs and outputs.
+// Example: userRegister receives name, email, and password, and returns a success message or error.
 
-Input Validation
+// Input Validation
 
-Always validate request data (req.body).
+// Always validate request data (req.body).
 
-Check required fields, data types, and formats.
+// Check required fields, data types, and formats.
 
-Use libraries like Joi or express-validator to enforce rules consistently.
+// Use libraries like Joi or express-validator to enforce rules consistently.
 
-Business Logic
+// Business Logic
 
-Define the exact steps your controller performs:
+// Define the exact steps your controller performs:
 
-Check if the user already exists
+// Check if the user already exists
 
-Hash passwords securely
+// Hash passwords securely
 
-Save data to the database
+// Save data to the database
 
-Generate JWT token (if authentication is required)
+// Generate JWT token (if authentication is required)
 
-Error Handling
+// Error Handling
 
-Use try/catch or async handlers for asynchronous code.
+// Use try/catch or async handlers for asynchronous code.
 
-Return clear, consistent error messages without leaking sensitive information.
+// Return clear, consistent error messages without leaking sensitive information.
 
-Security Considerations
+// Security Considerations
 
-Do not return sensitive data (password, tokens) in responses.
+// Do not return sensitive data (password, tokens) in responses.
 
-Validate inputs even for authenticated routes.
+// Validate inputs even for authenticated routes.
 
-Leverage JWT for authentication and protected routes.
+// Leverage JWT for authentication and protected routes.
 
-Response Structure
+// Response Structure
 
-Standardize API responses for consistency:
+// Standardize API responses for consistency:
 
-{
-  "success": true,
-  "message": "User created successfully",
-  "data": { "id": "...", "email": "..." }
-}
-  */
+// {
+//   "success": true,
+//   "message": "User created successfully",
+//   "data": { "id": "...", "email": "..." }
+// }
+//   */
+
+
+
+
+
+
+
+
+// IF YOU WANT TO SEE WORKFLOW HERE IT IS 
+
+// import asynchandler from "../utils/asynchandler.js";
+// import ApiResponse from "../utils/apiResponse.js";
+// import { uploadFile } from "../utils/fileUpload.js";
+// import ApiError from "../utils/apiError.js";
+// import { User } from "../models/user.model.js";
+
+// export const userRegister = asynchandler(async (req, res) => {
+//   // -------------------- STEP 1: Log incoming request --------------------
+//   console.log("---------- Incoming Request ----------");
+//   console.log("Body:", req.body);
+//   console.log("Files:", req.files);
+
+//   // -------------------- STEP 2: Extract user details --------------------
+//   const { fullname, email, username, password } = req.body;
+//   console.log("Extracted fields:", { fullname, email, username, password });
+
+//   // -------------------- STEP 3: Validation --------------------
+//   if (!fullname || fullname.trim() === "") throw new ApiError(404, "Full name is required!!");
+//   if (!email || email.trim() === "") throw new ApiError(404, "Email is required!!");
+//   if (!username || username.trim() === "") throw new ApiError(404, "Username is required!!");
+//   if (!password || password.trim() === "") throw new ApiError(404, "Password is required!!");
+
+//   // -------------------- STEP 4: Check if user already exists --------------------
+//   const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+//   if (existingUser) throw new ApiError(409, "User already exists!");
+
+//   // -------------------- STEP 5: Check uploaded files --------------------
+//   const avatarLocalPath = req.files?.avatar?.[0]?.path;
+//   const coverimageLocalPath = req.files?.coverimage?.[0]?.path;
+
+//   if (!avatarLocalPath) throw new ApiError(404, "Avatar is required");
+
+//   // -------------------- STEP 6: Upload files to Cloudinary --------------------
+//   console.log("Uploading avatar to Cloudinary...");
+//   const avatarUploadResult = await uploadFile(avatarLocalPath);
+//   const avatar = avatarUploadResult.secure_url || avatarUploadResult; // store only URL
+
+//   let coverimage = "";
+//   if (coverimageLocalPath) {
+//     console.log("Uploading cover image to Cloudinary...");
+//     const coverUploadResult = await uploadFile(coverimageLocalPath);
+//     coverimage = coverUploadResult.secure_url || coverUploadResult; // store only URL
+//   }
+
+//   // -------------------- STEP 7: Create user in database --------------------
+//   const user = await User.create({
+//     fullname,
+//     email,
+//     username: username.toLowerCase(),
+//     password,
+//     avatar,
+//     coverimage,
+//   });
+//   console.log("User created:", user);
+
+//   // -------------------- STEP 8: Fetch user without sensitive fields --------------------
+//   const createdUser = await User.findById(user._id).select("-password -refreshToken");
+
+//   // -------------------- STEP 9: Send response --------------------
+//   return res
+//     .status(201)
+//     .json(new ApiResponse(201, createdUser, "User registered successfully!"));
+// });
