@@ -217,7 +217,7 @@ export const userRegister = asynchandler(async (req, res) => {
 
   //6.   Backend sends tokens + cookie +  user info back
   // 1️ Set the refresh token in a cookie
-  res.cookie("refreshToken", refreshToken, {
+  res.cookie("refreshToken", refreshToken, {    //USE OF COOKIE FOR REFRESH TOKEN
     httpOnly: true, // JS cannot access it
     secure: true, // only sent over HTTPS
     sameSite: "Strict",
@@ -231,12 +231,22 @@ export const userRegister = asynchandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { userData, accessToken },
+        { userData, accessToken ,refreshToken },
         "Login Successfull",
         "user Loggedin succesfully!!!"
       )
     );
   //We send the user object so the frontend can display the user’s info immediately after login, like:Username,Email,Profile picture
+
+ // LOGOUT CONTOLLER 
+
+
+
+
+
+
+
+
 
 
 });
