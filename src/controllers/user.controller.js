@@ -9,11 +9,10 @@ import { User } from "../models/user.model.js";
 
 import generateTokensForUser from "../utils/tokenService.js";
 
-import dotenv from "dotenv";
-dotenv.config();
 
 
-// USER REGISTERiRATION PROCESS
+
+// USER REGISTERiRATION PROCESS ,visit Readme.md
 
 export const userRegister = asynchandler(async (req, res) => {
   //get user details from frontend
@@ -104,63 +103,7 @@ export const userRegister = asynchandler(async (req, res) => {
   .json(new ApiResponse(201, createdUser, "user registered succesfully!!!"));
 });
 
-/*
-// Guidelines for Writing Controllers
 
-// When creating a controller (e.g., userRegister), follow these best practices:
-
-// Purpose
-
-// Clearly define what the controller should do.
-
-// Specify expected inputs and outputs.
-// Example: userRegister receives name, email, and password, and returns a success message or error.
-
-// Input Validation
-
-// Always validate request data (req.body).
-
-// Check required fields, data types, and formats.
-
-// Use libraries like Joi or express-validator to enforce rules consistently.
-
-// Business Logic
-
-// Define the exact steps your controller performs:
-
-// Check if the user already exists
-
-// Hash passwords securely
-
-// Save data to the database
-
-// Generate JWT token (if authentication is required)
-
-// Error Handling
-
-// Use try/catch or async handlers for asynchronous code.
-
-// Return clear, consistent error messages without leaking sensitive information.
-
-// Security Considerations
-
-// Do not return sensitive data (password, tokens) in responses.
-
-// Validate inputs even for authenticated routes.
-
-// Leverage JWT for authentication and protected routes.
-
-// Response Structure
-
-// Standardize API responses for consistency:
-
-// {
-  //   "success": true,
-  //   "message": "User created successfully",
-  //   "data": { "id": "...", "email": "..." }
-  // }
-  //   */
-  
   // IF YOU WANT TO SEE WORKFLOW HERE IT IS
   
   // import asynchandler from "../utils/asynchandler.js";
@@ -227,24 +170,8 @@ export const userRegister = asynchandler(async (req, res) => {
         //     .json(new ApiResponse(201, createdUser, "User registered successfully!"));
         // });
         
-        //2. LOGIN PROCESS
-        //       1. User sends email + password
-        //           → Like showing an ID and PIN.
+        //2. LOGIN PROCESS   visit Readme.md
         
-        //       2. Backend checks if both fields are provided
-        //           → If missing, stop.
-        
-        //       3. Backend searches for the email in the database
-        //           → If no such user, stop.
-        
-        //       4. Backend compares the typed password with the stored hashed password
-        //           → If it doesn’t match, stop.
-        
-        //       5. If password is correct, backend creates access token + refresh token
-        //           → These are like digital entry passes.
-        
-        //       6. Backend sends tokens + user info back
-        //           → User is now logged in.
         
         export const loginUser = asynchandler(async (req, res) => {
           //first step extract dats from req.body
