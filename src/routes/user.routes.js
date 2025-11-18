@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { userRegister } from "../controllers/user.controller.js";
+import { loginUser, userRegister ,logoutUser } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";// multerconfig is where we configured multer
-
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 const router = Router();
 /*
 Flow:
@@ -16,7 +16,7 @@ Multer parses the files and saves them (in memory or disk, depending on your set
 
 The parsed data is available in your controller:
 */
-
+// Route for Registration
 router.route("/register").post(
   upload.fields([ // basically its middleware where multer handling uploads
     {
@@ -30,6 +30,15 @@ router.route("/register").post(
   ]),
   userRegister
 );
+
+router.route("/login").post(loginUser)
+
+// Route for logout (secured route)  injecting  authmiddleware
+
+
+router.route("logout").post(verifyJWT,logoutUser)
+
+
 export default router;
  // upload.fields(...)
 
