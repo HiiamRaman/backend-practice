@@ -1,6 +1,11 @@
 import { Router } from "express";
-import { loginUser, userRegister ,logoutUser } from "../controllers/user.controller.js";
-import { upload } from "../middlewares/multer.middleware.js";// multerconfig is where we configured multer
+import {
+  loginUser,
+  userRegister,
+  logoutUser,
+  refreshAccessToken
+} from "../controllers/user.controller.js";
+import { upload } from "../middlewares/multer.middleware.js"; // multerconfig is where we configured multer
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 const router = Router();
 /*
@@ -18,7 +23,8 @@ The parsed data is available in your controller:
 */
 // Route for Registration
 router.route("/register").post(
-  upload.fields([ // basically its middleware where multer handling uploads
+  upload.fields([
+    // basically its middleware where multer handling uploads
     {
       name: "avatar",
       maxCount: 1,
@@ -31,15 +37,17 @@ router.route("/register").post(
   userRegister
 );
 
-router.route("/login").post(loginUser)
+router.route("/login").post(loginUser);
+
+// secured route
 
 // Route for logout (secured route)  injecting  authmiddleware
 
+router.route("/logout").post(verifyJWT, logoutUser);
 
-router.route("logout").post(verifyJWT,logoutUser)
-
+router.route("/refresh").post(refreshAccessToken)
 
 export default router;
- // upload.fields(...)
+// upload.fields(...)
 
-      //This comes from Multer, a popular middleware for handling file uploads in Express
+//This comes from Multer, a popular middleware for handling file uploads in Express

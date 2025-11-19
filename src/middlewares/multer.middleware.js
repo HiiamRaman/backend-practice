@@ -1,7 +1,6 @@
 import multer from "multer";
 
-
-// 1. first handle storage then go for uploaad   and handle routes
+// 1. first handle storage then go for upload   and handle routes
 //disk storage
 
 const storage = multer.diskStorage({
@@ -20,14 +19,3 @@ export const upload = multer({ storage: storage });
 //   // req.file is the `avatar` file
 //   // req.body will hold the text fields, if there were any
 // })
-
-
-
-
-
-
-
-
-
-
-

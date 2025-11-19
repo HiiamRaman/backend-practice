@@ -23,7 +23,7 @@ export const uploadFile = async (localFilePath) => {
       resource_type: "auto",
     });
 
-    // Delete temp file after success
+    // Delete temp file after success  (no images will be saved in your public/temp )
 
     if (fs.existsSync(localFilePath)) {
       fs.unlinkSync(localFilePath);

@@ -4,9 +4,9 @@ import { uploadFile } from "../utils/fileUpload.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import generateTokensForUser from "../utils/tokenService.js";
-
-
-
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import dotenv from 'dotenv'
+dotenv.config()
 // USER REGISTERiRATION PROCESS ,visit Readme.md
 
 export const userRegister = asynchandler(async (req, res) => {
@@ -207,14 +207,12 @@ export const loginUser = asynchandler(async (req, res) => {
 
   //6.   Backend sends tokens + cookie +  user info back
   // 1️ Set the refresh token in a cookie
-const cookieOptions = {
-    
+  const cookieOptions = {
     httpOnly: true, // JS cannot access it
-    secure: true, // only sent over HTTPS
+    secure: process.env.NODE_ENV === "production", // only sent over HTTPS
     sameSite: "Strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
-  }
-
+  };
 
   res.cookie("refreshToken", refreshToken, cookieOptions);
 
@@ -238,7 +236,7 @@ export const logoutUser = asynchandler(async (req, res, next) => {
 
   try {
     const userId = req.user._id;
-  
+
     if (userId == null || userId == undefined) {
       throw new ApiError(401, "Cannot find Userid");
     }
@@ -249,31 +247,110 @@ export const logoutUser = asynchandler(async (req, res, next) => {
       },
       { new: true }
     );
-  
-   
+
     // 4. Clear refresh token  and accessToken cookie from browser
 
- const cookieOptions = {
-      httpOnly: true,     // JS cannot access
-      secure: true,       // only https
+    const cookieOptions = {
+      httpOnly: true, // JS cannot access
+      secure: process.env.NODE_ENV === "production",// only https
       sameSite: "Strict", // CSRF protection
     };
 
-  
     res.clearCookie("refreshToken", cookieOptions);
-    res.clearCookie("accessToken",cookieOptions);
-  
+    res.clearCookie("accessToken", cookieOptions);
+
     //  new ApiResponse(status, data, message, description)
     return res
       .status(200)
       .json(
-        new ApiResponse(200, "logout Success!!!", "User logged out Successfully")
+        new ApiResponse(
+          200,
+          "logout Success!!!",
+          "User logged out Successfully"
+        )
       );
   } catch (error) {
-
-    throw new ApiError(500,"Logout Failed");
-    
-    
-    
+    throw new ApiError(500, "Logout Failed");
   }
 });
+
+// REFRESH TOKEN ROTATION
+
+export const refreshAccessToken = asynchandler(async (req, res, next) => {
+   /* 1. Extract refresh token from cookies
+       2. Verify the refresh token signature & expiry
+       3. Find user using the decoded ID
+       4. Compare incoming refresh token with DB-stored token
+       5.  Generate NEW tokens (access + refresh)
+       7. Send back the new access token
+    */
+
+  //1. Extract refresh token from cookies
+
+  try {
+    const incomingRefreshToken = req.cookies.refreshToken;
+    if (!incomingRefreshToken) {
+      throw new ApiError(401, "incomingRefreshToken not found");
+    }
+    // 2. Verify the refresh token signature & expiry
+
+    const decodedToken = verifyJWT(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN
+    );
+
+    //3. Find user using the decoded ID
+
+    const user = await User.findById(decodedToken._id);
+
+    if (!user) {
+      throw new ApiError(401, "user not found");
+    }
+    if (user.refreshToken !== incomingRefreshToken) {
+      throw new ApiError(401, "Invalid Authentication");
+    }
+    // 5. Generate NEW tokens (access + refresh)
+
+    const { accessToken, refreshToken } = await generateTokensForUser(user);
+
+
+    // user.refreshToken = refreshToken;
+    // await user.save({ validateBeforeSave: false });    it can be also done by 
+
+    // store in db
+    await User.findByIdAndUpdate(
+      user._id,
+      {
+        $set: { refreshToken: refreshToken },
+      },
+      { new: true }
+    );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+    };
+
+    res.cookie("refreshToken", refreshToken, cookieOptions);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { success: true, accessToken },
+          "AccessToken re-generlated Successfully"
+        )
+      );
+  } catch (error) {
+    
+    throw new ApiError(500, "Failed to regenerate Accestoken");
+  }
+});
+
+
+
+
+
+
