@@ -351,6 +351,84 @@ export const refreshAccessToken = asynchandler(async (req, res, next) => {
 
 
 
+// CHANGE USER'S PASSWORD   (visit readme.md)
+
+
+
+
+export const changePassword = asynchandler(async(req,res)=>{
+
+
+try {
+  
+   //STEPS THAT NEED TO BE FOLLOWED
+  
+  
+   const {confirmPassword , oldPassword , newPassword} = req.body
+  //Order must be:
+  
+  //Validate input
+  if(!confirmPassword||!oldPassword|| !newPassword){
+    throw new ApiError(400 , "All fields are required!!!");
+    
+  }
+  
+  
+  
+  // Find user
+  
+  const user  = await User.findById(req.user._id).select('+password');
+  if (!user) {
+    throw new ApiError(404,"User not found");
+    
+  }
+  
+  // Compare old password
+   const validPassword =  await user.isPasswordCorrect(oldPassword)
+    if(!validPassword){
+      throw new ApiError(400," invalid password ");
+      }
+  
+  // Compare new and confirm
+  
+  if(!((newPassword  === confirmPassword)))
+  {
+    throw new ApiError(400,"newPassword must be same to confirmPassword");
+    
+  }
+  
+  // Set new password
+  user.password = newPassword;
+  // Save → triggers hashing middleware
+  await user.save();
+  
+  
+  
+  
+  
+  // Send response
+  return res.status(200).json(new ApiResponse(200,{},"password has changed succesfully"))
+  
+  // If we flip these steps → security breaks.
+  
+  
+} catch (error) {
+  
+throw new ApiError(500,"Failed to Change the passsword");
+
+
+}
+
+
+
+
+})
+
+
+
+
+
+
 
 
 
