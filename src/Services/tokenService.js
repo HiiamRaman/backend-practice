@@ -1,8 +1,6 @@
-
 import { User } from "../models/user.model.js";
-import ApiError from "./apiError.js";
+import ApiError from "../utils/apiError.js";
 // here we are trying to create a methods for creation of acces token and refresh token
-
 
 /* 1.find the user with the help on data base
    2.Generates access and refresh tokens for a user
@@ -10,10 +8,7 @@ import ApiError from "./apiError.js";
    4.return accesstoken adn refresh token
 */
 
-
-
-
- const generateTokensForUser = async (userId) => {
+const generateTokensForUser = async (userId) => {
   try {
     // Find user by database
     const user = await User.findById(userId);

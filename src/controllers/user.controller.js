@@ -1,12 +1,14 @@
 import asynchandler from "../utils/asynchandler.js";
 import ApiResponse from "../utils/apiResponse.js";
-import { uploadFile } from "../utils/fileUpload.js";
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
-import generateTokensForUser from "../utils/tokenService.js";
+import generateTokensForUser from "../Services/tokenService.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+import { handleUserFile } from "../Services/fileService.js";
+
+dotenv.config();
 // USER REGISTERiRATION PROCESS ,visit Readme.md
 
 export const userRegister = asynchandler(async (req, res) => {
@@ -66,9 +68,9 @@ export const userRegister = asynchandler(async (req, res) => {
   //Upload them to Cloudinary(fileUpload.js)
   // -------------------- UPLOAD TO CLOUD --------------------
 
-  const avatar = await uploadFile(avatarLocalPath); //uploadFile is that file we made for uploading on file fileUpload
+  const avatar = await uploadOnCloudinary(avatarLocalPath); //uploadOnCloudinary is that file we made for uploading on file fileUpload
 
-  const coverimage = await uploadFile(coverimageLocalPath);
+  const coverimage = await uploadOnCloudinary(coverimageLocalPath);
   if (!avatar) {
     throw new ApiError(400, "Avatar image is required");
   }
@@ -102,7 +104,7 @@ export const userRegister = asynchandler(async (req, res) => {
 
 // import asynchandler from "../utils/asynchandler.js";
 // import ApiResponse from "../utils/apiResponse.js";
-// import { uploadFile } from "../utils/fileUpload.js";
+// import { uploadOnCloudinary } from "../utils/fileUpload.js";
 // import ApiError from "../utils/apiError.js";
 // import { User } from "../models/user.model.js";
 
@@ -134,13 +136,13 @@ export const userRegister = asynchandler(async (req, res) => {
 
 //   // -------------------- STEP 6: Upload files to Cloudinary --------------------
 //   console.log("Uploading avatar to Cloudinary...");
-//   const avatarUploadResult = await uploadFile(avatarLocalPath);
+//   const avatarUploadResult = await uploadOnCloudinary(avatarLocalPath);
 //   const avatar = avatarUploadResult.secure_url || avatarUploadResult; // store only URL
 
 //   let coverimage = "";
 //   if (coverimageLocalPath) {
 //     console.log("Uploading cover image to Cloudinary...");
-//     const coverUploadResult = await uploadFile(coverimageLocalPath);
+//     const coverUploadResult = await uploadOnCloudinary(coverimageLocalPath);
 //     coverimage = coverUploadResult.secure_url || coverUploadResult; // store only URL
 //   }
 
@@ -252,7 +254,7 @@ export const logoutUser = asynchandler(async (req, res, next) => {
 
     const cookieOptions = {
       httpOnly: true, // JS cannot access
-      secure: process.env.NODE_ENV === "production",// only https
+      secure: process.env.NODE_ENV === "production", // only https
       sameSite: "Strict", // CSRF protection
     };
 
@@ -277,7 +279,7 @@ export const logoutUser = asynchandler(async (req, res, next) => {
 // REFRESH TOKEN ROTATION
 
 export const refreshAccessToken = asynchandler(async (req, res, next) => {
-   /* 1. Extract refresh token from cookies
+  /* 1. Extract refresh token from cookies
        2. Verify the refresh token signature & expiry
        3. Find user using the decoded ID
        4. Compare incoming refresh token with DB-stored token
@@ -313,9 +315,8 @@ export const refreshAccessToken = asynchandler(async (req, res, next) => {
 
     const { accessToken, refreshToken } = await generateTokensForUser(user);
 
-
     // user.refreshToken = refreshToken;
-    // await user.save({ validateBeforeSave: false });    it can be also done by 
+    // await user.save({ validateBeforeSave: false });    it can be also done by
 
     // store in db
     await User.findByIdAndUpdate(
@@ -344,91 +345,116 @@ export const refreshAccessToken = asynchandler(async (req, res, next) => {
         )
       );
   } catch (error) {
-    
     throw new ApiError(500, "Failed to regenerate Accestoken");
   }
 });
 
-
-
 // CHANGE USER'S PASSWORD   (visit readme.md)
 
+export const changePassword = asynchandler(async (req, res) => {
+  try {
+    //STEPS THAT NEED TO BE FOLLOWED
 
+    const { confirmPassword, oldPassword, newPassword } = req.body;
+    //Order must be:
 
+    //Validate input
+    if (!confirmPassword || !oldPassword || !newPassword) {
+      throw new ApiError(400, "All fields are required!!!");
+    }
 
-export const changePassword = asynchandler(async(req,res)=>{
+    // Find user
 
+    const user = await User.findById(req.user._id).select("+password");
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
 
-try {
-  
-   //STEPS THAT NEED TO BE FOLLOWED
-  
-  
-   const {confirmPassword , oldPassword , newPassword} = req.body
-  //Order must be:
-  
-  //Validate input
-  if(!confirmPassword||!oldPassword|| !newPassword){
-    throw new ApiError(400 , "All fields are required!!!");
-    
+    // Compare old password
+    const validPassword = await user.isPasswordCorrect(oldPassword);
+    if (!validPassword) {
+      throw new ApiError(400, " invalid password ");
+    }
+
+    // Compare new and confirm
+
+    if (!(newPassword === confirmPassword)) {
+      throw new ApiError(400, "newPassword must be same to confirmPassword");
+    }
+
+    // Set new password
+    user.password = newPassword;
+    // Save → triggers hashing middleware
+    await user.save();
+
+    // Send response
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "password has changed succesfully"));
+
+    // If we flip these steps → security breaks.
+  } catch (error) {
+    throw new ApiError(500, "Failed to Change the passsword");
   }
-  
-  
-  
-  // Find user
-  
-  const user  = await User.findById(req.user._id).select('+password');
+});
+
+// UPDATE USER PROFILE
+
+export const updateUser = asynchandler(async (req, res) => {
+  // const { confirmPassword, oldPassword, newPassword } = req.body;
+  // we cannot make entrys like this because updation depends on user what he wants to update
+  // so we have to use the partial approach for data entry.
+
+  // 1. Define which fields are allowed to change (whitelist)
+  const allowedFields = [
+    "username",
+    "fullname",
+    "bio",
+    "email",
+    "theme",
+    "language",
+    "phone",
+    "notificationSetting",
+  ];
+
+  const incomingFields = Object.keys(req.body);
+  //Object.keys() ---> returns an array of ALL the keys inside that object
+
+  // if no fields are sent then return errror
+  if (incomingFields.length === 0) {
+    throw new ApiError(400, "No fields are provided to update");
+  }
+  // make sure every incomingFields are allowedFields
+
+  const validFields = incomingFields.every((field) =>
+    allowedFields.includes(field)
+  );
+  if (!validFields) {
+    throw new ApiError(400, "invalid fields are detected - update not allowed");
+  }
+
+  // Find the logged-in user using ID extracted from JWT middleware (req.user)
+  const user = await User.findById(req.user._id);
   if (!user) {
-    throw new ApiError(404,"User not found");
-    
+    throw new ApiError(404, "User not Found");
   }
-  
-  // Compare old password
-   const validPassword =  await user.isPasswordCorrect(oldPassword)
-    if(!validPassword){
-      throw new ApiError(400," invalid password ");
-      }
-  
-  // Compare new and confirm
-  
-  if(!((newPassword  === confirmPassword)))
-  {
-    throw new ApiError(400,"newPassword must be same to confirmPassword");
-    
-  }
-  
-  // Set new password
-  user.password = newPassword;
-  // Save → triggers hashing middleware
-  await user.save();
-  
-  
-  
-  
-  
-  // Send response
-  return res.status(200).json(new ApiResponse(200,{},"password has changed succesfully"))
-  
-  // If we flip these steps → security breaks.
-  
-  
-} catch (error) {
-  
-throw new ApiError(500,"Failed to Change the passsword");
 
+  // Apply all incoming fields to user object
+  // Example: user.fullname = req.body.fullname
+  // This loop automatically updates whichever allowed fields were sent
 
-}
+  //   Update text fields
+  incomingFields.forEach(
+    (field) =>
+      (user[field] = req.body[field])
+      //user["username"] = req.body["username"];
+      //user.username = "raman_new";
+  );
 
+// Update avatar/cover via service
 
-
-
-})
-
-
-
-
-
-
-
-
-
+      const uploadedFiles =  await handleUserFile(req.files) ; 
+      Object.assign(user,uploadedFiles);  // merge uploaded URLs into user
+      await user.save()
+return res.status(200).json(new ApiResponse(200,{},"users data updated successfully!"))
+});

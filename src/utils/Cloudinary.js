@@ -13,7 +13,7 @@ cloudinary.config({
 
 // cloudinary file upload code
 
-export const uploadFile = async (localFilePath) => {
+export const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) {
       console.log("file path not found!!");
