@@ -6,7 +6,7 @@ import { User } from "../models/user.model.js";
 import generateTokensForUser from "../Services/tokenService.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import dotenv from "dotenv";
-import { handleUserFile } from "../Services/fileService.js";
+//import { handleUserFile } from "../Services/fileService.js";
 
 dotenv.config();
 // USER REGISTERiRATION PROCESS ,visit Readme.md
@@ -410,7 +410,7 @@ export const updateUser = asynchandler(async (req, res) => {
     "username",
     "fullname",
     "bio",
-    "email",
+   
     "theme",
     "language",
     "phone",
@@ -453,8 +453,16 @@ export const updateUser = asynchandler(async (req, res) => {
 
 // Update avatar/cover via service
 
-      const uploadedFiles =  await handleUserFile(req.files) ; 
-      Object.assign(user,uploadedFiles);  // merge uploaded URLs into user
-      await user.save()
-return res.status(200).json(new ApiResponse(200,{},"users data updated successfully!"))
+//       const uploadedFiles =  await handleUserFile(req.files) ; 
+//       Object.assign(user,uploadedFiles);  // merge uploaded URLs into user
+//       await user.save()
+
+
+
+
+
+
+ return res.status(200).json(new ApiResponse(200,{},"users data updated successfully!"))
 });
+
+

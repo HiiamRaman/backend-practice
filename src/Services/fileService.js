@@ -1,4 +1,4 @@
-
+/*
 import { uploadOnCloudinary } from "../utils/Cloudinary";
 import ApiError from "../utils/apiError";
 import fs from 'fs'
@@ -7,11 +7,11 @@ export const handleUserFile  =async(files)=>{
 
    try {
      const result = {};
-   /*  it will look like this 
-   result = {
-   avatar: "https://cloudinary.com/avatar123",
-   coverImage: "https://cloudinary.com/cover456"
-   };   */
+//    it will look like this 
+//    result = {
+//    avatar: "https://cloudinary.com/avatar123",
+//    coverImage: "https://cloudinary.com/cover456"
+//     };   
  
  if(files?.avatar){  
      const uploaded = await uploadOnCloudinary(files?.avatar[0].path);
@@ -41,3 +41,6 @@ export const handleUserFile  =async(files)=>{
     
    }
 }
+
+
+*/
