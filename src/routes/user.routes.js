@@ -7,6 +7,8 @@ import {
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"; // multerconfig is where we configured multer
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { updateCoverimage } from "../controllers/image.controlelr.js";
+import { updateAvatarimage } from "../controllers/image.controlelr.js";
 const router = Router();
 /*
 Flow:
@@ -46,6 +48,9 @@ router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 
 router.route("/refresh").post(refreshAccessToken)
+
+router.route("/coverimage").patch(verifyJWT ,upload.single("coverimage"), updateCoverimage)
+router.route("/avatarimage").patch(verifyJWT ,upload.single("avatar") ,updateAvatarimage)
 
 export default router;
 // upload.fields(...)

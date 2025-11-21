@@ -3,7 +3,7 @@ import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import asynchandler from "../utils/asynchandler";
 import { uploadOnCloudinary } from "../utils/Cloudinary";
-export const updateAvatar  = asynchandler(async(req,res)=>{
+export const updateAvatarimage  = asynchandler(async(req,res)=>{
         const avatarPath = req.file?.path ; 
         if (!avatarPath) {
             throw new ApiError(400,"Avatarimage is reqiored");
@@ -26,7 +26,7 @@ export const updateAvatar  = asynchandler(async(req,res)=>{
 
 })
 
-export const  newCoverimage = asynchandler(async(req, res)=>{
+export const  updateCoverimage = asynchandler(async(req, res)=>{
 try {
     
     const coverimagepath = req.file?.path 
