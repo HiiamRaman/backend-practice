@@ -1,8 +1,8 @@
-import { User } from "../models/user.model";
-import ApiError from "../utils/apiError";
-import ApiResponse from "../utils/apiResponse";
-import asynchandler from "../utils/asynchandler";
-import { uploadOnCloudinary } from "../utils/Cloudinary";
+import { User } from "../models/user.model.js";
+import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
+import asynchandler from "../utils/asynchandler.js";
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 export const updateAvatarimage  = asynchandler(async(req,res)=>{
         const avatarPath = req.file?.path ; 
         if (!avatarPath) {
