@@ -410,7 +410,7 @@ export const updateUser = asynchandler(async (req, res) => {
     "username",
     "fullname",
     "bio",
-   
+
     "theme",
     "language",
     "phone",
@@ -445,24 +445,18 @@ export const updateUser = asynchandler(async (req, res) => {
 
   //   Update text fields
   incomingFields.forEach(
-    (field) =>
-      (user[field] = req.body[field])
-      //user["username"] = req.body["username"];
-      //user.username = "raman_new";
+    (field) => (user[field] = req.body[field])
+    //user["username"] = req.body["username"];
+    //user.username = "raman_new";
   );
 
-// Update avatar/cover via service
+  // Update avatar/cover via service
 
-//       const uploadedFiles =  await handleUserFile(req.files) ; 
-//       Object.assign(user,uploadedFiles);  // merge uploaded URLs into user
-//       await user.save()
+  //       const uploadedFiles =  await handleUserFile(req.files) ;
+  //       Object.assign(user,uploadedFiles);  // merge uploaded URLs into user
+  //       await user.save()
 
-
-
-
-
-
- return res.status(200).json(new ApiResponse(200,{},"users data updated successfully!"))
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "users data updated successfully!"));
 });
-
-
