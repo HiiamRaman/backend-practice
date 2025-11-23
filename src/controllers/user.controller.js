@@ -460,3 +460,73 @@ export const updateUser = asynchandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, {}, "users data updated successfully!"));
 });
+
+
+
+export const UserChannelProfile = asynchandler(async(req,res)=>{
+
+   const {username} = req.params   //params means url
+if(!username?.trim())
+  throw new ApiError(404,"username not found");
+
+const channelProfile  = await User.aggregate ([{
+  $match : { 
+    username : username
+   }
+},
+{
+  $lookup : {
+    from : "subscriptions",    //subscription model bata lageko!!!
+    localField : "_id",
+    foreignField : "channel",
+    as : "subscribers"
+  },
+
+},
+{
+  $lookup : {
+    from :"subscriptions",
+    localField :"_id",
+    foreignField: "subscriber",
+    as :"subscribed"
+  }
+},
+{
+  $addFields : {
+    subscriberCount : {
+      $size : "$subscribers" //$size basically counts 
+    },
+      channelSubscribedCount : {
+        $size : "$subscribed"
+      },
+    
+    isSubscribed : {
+      $cond : {
+        if : {$in : [req.user?._id , "$subscribers.subscriber"] },
+        then : true ,
+        else : false
+      }
+    }
+  }
+},
+{
+  $project : {
+    fullname : 1,
+    username : 1,
+    subscriberCount: 1,
+    channelSubscribedCount:1,
+    isSubscribed : 1,
+    avatar:1,
+    coverimage:1
+
+  }
+}])
+if(!channelProfile.length ){
+
+  throw new ApiError(400,"channelProfile doesnot Exists");
+  
+}
+return res.status(200).json(new ApiResponse (200,channelProfile[0],"ChannelProfile fetched successfully!!"))
+  
+})
+
