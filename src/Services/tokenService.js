@@ -25,6 +25,7 @@ const generateTokensForUser = async (userId) => {
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (error) {
+    console.log("token generation errors" , error)
     throw new ApiError(500, "Something were wrong while generating tokens");
   }
 };

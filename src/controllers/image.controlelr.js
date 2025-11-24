@@ -3,6 +3,7 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import asynchandler from "../utils/asynchandler.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
+import fs from 'fs'
 export const updateAvatarimage  = asynchandler(async(req,res)=>{
         const avatarPath = req.file?.path ; 
         if (!avatarPath) {

@@ -46,7 +46,7 @@ router.route("/login").post(loginUser);
 
 // Route for logout (secured route)  injecting  authmiddleware
 
-router.route("/logout").post(verifyJWT, logoutUser);
+router.route("/logout").post( logoutUser);
 
 router.route("/refresh").post(refreshAccessToken)
 

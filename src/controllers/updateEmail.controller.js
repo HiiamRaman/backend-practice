@@ -10,6 +10,7 @@ export const updateEmail = asynchandler(async (req, res) => {
   //4.find existing email
   //6.save in db
   //7.return resp
+  console.log("req.user : ", req.user)
   try {
     const { newEmail } = req.body;
     if (!newEmail || newEmail.trim() === "") {

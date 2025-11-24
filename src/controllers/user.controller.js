@@ -4,8 +4,9 @@ import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import generateTokensForUser from "../Services/tokenService.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken"
 //import { handleUserFile } from "../Services/fileService.js";
 
 dotenv.config();
@@ -97,7 +98,13 @@ export const userRegister = asynchandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, createdUser, "user registered succesfully!!!"));
+    .json(
+      new ApiResponse(
+        201,
+        { user: createdUser },
+        "user registered succesfully!!!"
+      )
+    );
 });
 
 // IF YOU WANT TO SEE WORKFLOW HERE IT IS
@@ -236,44 +243,37 @@ export const loginUser = asynchandler(async (req, res) => {
 export const logoutUser = asynchandler(async (req, res, next) => {
   console.log("user requested for logout");
 
-  try {
-    const userId = req.user._id;
-
-    if (userId == null || userId == undefined) {
-      throw new ApiError(401, "Cannot find Userid");
-    }
-    await User.findByIdAndUpdate(
-      userId,
-      {
-        $set: { refreshToken: null },
-      },
-      { new: true }
-    );
-
-    // 4. Clear refresh token  and accessToken cookie from browser
-
-    const cookieOptions = {
-      httpOnly: true, // JS cannot access
-      secure: process.env.NODE_ENV === "production", // only https
-      sameSite: "Strict", // CSRF protection
-    };
-
-    res.clearCookie("refreshToken", cookieOptions);
-    res.clearCookie("accessToken", cookieOptions);
-
-    //  new ApiResponse(status, data, message, description)
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) {
     return res
       .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          "logout Success!!!",
-          "User logged out Successfully"
-        )
-      );
-  } catch (error) {
-    throw new ApiError(500, "Logout Failed");
+      .json(new ApiResponse(200, {}, "User already logged out"));
   }
+
+  await User.updateOne(
+    { refreshToken },
+
+    {
+      $set: { refreshToken: null },
+    },
+    { new: true }
+  );
+
+  // 4. Clear refresh token  and accessToken cookie from browser
+
+  const cookieOptions = {
+    httpOnly: true, // JS cannot access
+    secure: process.env.NODE_ENV === "production", // only https
+    sameSite: "Strict", // CSRF protection
+  };
+
+  res.clearCookie("refreshToken", cookieOptions);
+  res.clearCookie("accessToken", cookieOptions);
+
+  //  new ApiResponse(status, data, message, description)
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "User logged out Successfully"));
 });
 
 // REFRESH TOKEN ROTATION
@@ -296,7 +296,7 @@ export const refreshAccessToken = asynchandler(async (req, res, next) => {
     }
     // 2. Verify the refresh token signature & expiry
 
-    const decodedToken = verifyJWT(
+    const decodedToken = jwt.verify(
       incomingRefreshToken,
       process.env.REFRESH_TOKEN
     );
@@ -345,6 +345,7 @@ export const refreshAccessToken = asynchandler(async (req, res, next) => {
         )
       );
   } catch (error) {
+    console.log("Error",error)
     throw new ApiError(500, "Failed to regenerate Accestoken");
   }
 });
@@ -461,72 +462,72 @@ export const updateUser = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "users data updated successfully!"));
 });
 
+export const UserChannelProfile = asynchandler(async (req, res) => {
+  const { username } = req.params; //params means url
+  if (!username?.trim()) throw new ApiError(404, "username not found");
 
-
-export const UserChannelProfile = asynchandler(async(req,res)=>{
-
-   const {username} = req.params   //params means url
-if(!username?.trim())
-  throw new ApiError(404,"username not found");
-
-const channelProfile  = await User.aggregate ([{
-  $match : { 
-    username : username
-   }
-},
-{
-  $lookup : {
-    from : "subscriptions",    //subscription model bata lageko!!!
-    localField : "_id",
-    foreignField : "channel",
-    as : "subscribers"
-  },
-
-},
-{
-  $lookup : {
-    from :"subscriptions",
-    localField :"_id",
-    foreignField: "subscriber",
-    as :"subscribed"
-  }
-},
-{
-  $addFields : {
-    subscriberCount : {
-      $size : "$subscribers" //$size basically counts 
-    },
-      channelSubscribedCount : {
-        $size : "$subscribed"
+  const channelProfile = await User.aggregate([
+    {
+      $match: {
+        username: username,
       },
-    
-    isSubscribed : {
-      $cond : {
-        if : {$in : [req.user?._id , "$subscribers.subscriber"] },
-        then : true ,
-        else : false
-      }
-    }
+    },
+    {
+      $lookup: {
+        from: "subscriptions", //subscription model bata lageko!!!
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribed",
+      },
+    },
+    {
+      $addFields: {
+        subscriberCount: {
+          $size: "$subscribers", //$size basically counts
+        },
+        channelSubscribedCount: {
+          $size: "$subscribed",
+        },
+
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullname: 1,
+        username: 1,
+        subscriberCount: 1,
+        channelSubscribedCount: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverimage: 1,
+      },
+    },
+  ]);
+  if (!channelProfile.length) {
+    throw new ApiError(400, "channelProfile doesnot Exists");
   }
-},
-{
-  $project : {
-    fullname : 1,
-    username : 1,
-    subscriberCount: 1,
-    channelSubscribedCount:1,
-    isSubscribed : 1,
-    avatar:1,
-    coverimage:1
-
-  }
-}])
-if(!channelProfile.length ){
-
-  throw new ApiError(400,"channelProfile doesnot Exists");
-  
-}
-return res.status(200).json(new ApiResponse (200,channelProfile[0],"ChannelProfile fetched successfully!!"))
-  
-})
-
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        channelProfile[0],
+        "ChannelProfile fetched successfully!!"
+      )
+    );
+});
