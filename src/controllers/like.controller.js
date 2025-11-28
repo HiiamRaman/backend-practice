@@ -44,9 +44,7 @@ export const toggleCommentLike = asynchandler(async (req, res) => {
   if (alreadyLiked) {
     //Unlike _Logic
 
-    comment.likes = comment.likes.filter(
-      (id) => id.toString() !== userID
-    );
+    comment.likes = comment.likes.filter((id) => id.toString() !== userID);
     message = "user disliked";
   } else {
     //Like
@@ -58,8 +56,49 @@ export const toggleCommentLike = asynchandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, {comment}, "toggled like comment succesfully"));
+    .json(
+      new ApiResponse(200, { comment }, "toggled like comment succesfully")
+    );
 });
-export const toggleVideoLike = asynchandler(async (req, res) => {});
+
+// toggleVideoLike logic is very similar to comment like
+export const toggleVideoLike = asynchandler(async (req, res) => {
+  /* 
+    Mental Flow:
+    Input → videoID (params)
+     Validate → check valid ObjectId
+    Fetch video → Video.findById(videoID)
+    Check existence
+    Toggle like:
+         - If user already liked → remove like
+         - Else → add like
+    Save video
+    Respond with updated video + message
+  */
+  const { videoID } = req.params;
+
+  if (!videoID || !mongoose.Types.ObjectId.isValid(videoID)) {
+    throw new ApiError(400, "invalid VideoID");
+  }
+  let message;
+  const video = await Video.findById(videoID);
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+  const userID = req.user._id.toString();
+  const alreadyLiked = video.likes.some((id) => id.toString() === userID);
+  if (alreadyLiked) {
+    //unlike
+    video.likes = video.likes.filter((id) => id.toString() !== userID);
+    message = "Video Unliked";
+  } else {
+    //like
+    video.likes.push(userID);
+    message =  "Video Liked"
+  }
+  await video.save();
+  await video.populate("owner", "name avatarUrl");
+  return res.status(200).json(new ApiResponse (200, null, "Toggled Video like successfully!!"));
+});
 export const toggleTweetLike = asynchandler(async (req, res) => {});
 export const getLikedVideo = asynchandler(async (req, res) => {});
