@@ -65,33 +65,66 @@ export const getUserTweets = asynchandler(async (req, res) => {
     );
 });
 export const deleteTweets = asynchandler(async (req, res) => {
+  const { tweetID } = req.params;
+  if (!tweetID || !mongoose.Types.ObjectId.isValid(tweetID)) {
+    throw new ApiError(400, "invalid Tweetid");
+  }
+  //check if there is tweet or not
+  const tweet = await Tweet.findById(tweetID);
+  if (!tweet) {
+    throw new ApiError(404, "Tweet not Found");
+  }
 
-     const { tweetID } = req.params;
-     if (!tweetID || !mongoose.Types.ObjectId.isValid(tweetID)) {
-       throw new ApiError(400, "invalid Tweetid");
-     }
-     //check if there is tweet or not
-     const tweet = await Tweet.findById(tweetID);
-     if (!tweet) {
-       throw new ApiError(404, "Tweet not Found");
-     }
-   
-     //check authorixation so only owner cna delete it
-     if (tweet.owner.toString() !== req.user._id.toString()){
-       throw new ApiError(403,"Only owner can delete the tweet");
-       
-     }
-   
-     await Tweet.findByIdAndDelete(tweetID);
-   
-     return res
-       .status(200)
-       .json(new ApiResponse(200, null, "Tweet deleted successfully!!"));
+  //check authorixation so only owner cna delete it
+  if (tweet.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "Only owner can delete the tweet");
+  }
 
+  await Tweet.findByIdAndDelete(tweetID);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Tweet deleted successfully!!"));
 });
 export const updateTweets = asynchandler(async (req, res) => {
+  /*
+    Mental Workflow:
+    Get tweetID from params and content from body
+    Validate inputs
+    Fetch tweet
+    Check existence
+    Check authorization (owner only)
+    Update content
+    Save changes
+    Populate owner info
+    Send structured response
+  */
 
+  const { tweetID } = req.params;
+  const { content } = req.body;
 
+  if (!tweetID || !mongoose.Types.ObjectId.isValid(tweetID)) {
+    throw new ApiError(400, "invalid Tweet id");
+  }
+  if (!content || !content.trim()) {
+    throw new ApiError(400, "content is required!");
+  }
 
-    
+  const tweet = await Tweet.findById(tweetID);
+
+  if (!tweet) {
+    throw new ApiError(404, "Tweet not found");
+  }
+
+  if (tweet.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "Only owner can update tweet");
+  }
+
+  tweet.content = content.trim();
+  await tweet.save();
+  await tweet.populate("owner", "username avatar");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { tweet }, "Tweet updated successfully!!!"));
 });
