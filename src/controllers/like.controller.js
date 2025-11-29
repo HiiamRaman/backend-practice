@@ -94,11 +94,84 @@ export const toggleVideoLike = asynchandler(async (req, res) => {
   } else {
     //like
     video.likes.push(userID);
-    message =  "Video Liked"
+    message = "Video Liked";
   }
   await video.save();
   await video.populate("owner", "name avatarUrl");
-  return res.status(200).json(new ApiResponse (200, null, "Toggled Video like successfully!!"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Toggled Video like successfully!!"));
 });
-export const toggleTweetLike = asynchandler(async (req, res) => {});
-export const getLikedVideo = asynchandler(async (req, res) => {});
+export const getLikedVideo = asynchandler(async (req, res) => {
+  /*
+    Mental Flow:
+    - Get userId from req.user
+    - Fetch videos where likes[] contains userId
+    - Return list
+  */
+  //Get UserId
+  try {
+    const userID = req.user._id;
+    if (!userID) {
+      throw new ApiError(400, "Invalid userID");
+    }
+
+    //Fetch videos
+    const likedVideos = await Video.find({ likes: userID })
+      .populate("owner", "name avatarUrl")
+      .sort({ createdAt: -1 }); //for newest likes
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { likedVideos },
+          "Liked videos fetched successfully!!!"
+        )
+      );
+  } catch (error) {
+    console.log("Failed to getliked videos ", error);
+    throw new ApiError(500, "Failed to getliked videos");
+  }
+});
+export const toggleTweetLike = asynchandler(async (req, res) => {
+  /*
+    Mental Flow:
+    - Get tweetID from params
+    - Validate ObjectId
+    - Fetch tweet
+    - Check existence
+    - Check if user already liked
+    - Toggle like/unlike
+    - Save and respond
+  */
+  const { tweetID } = req.params;
+  let message;
+  if (!tweetID || !mongoose.Types.ObjectId.isValid(tweetID)) {
+    throw new ApiError(400, "invalid TweetId");
+  }
+
+  const tweet = await Tweet.findById(tweetID);
+  if (!tweet) {
+    throw new ApiError(400, "tweet not found");
+  }
+
+  const userID = req.user._id.toString();
+
+  //already liked
+  const alreadyLiked = tweet.likes.some((id) => id.toString() === userID);
+  if (alreadyLiked) {
+    //Unlike
+    tweet.likes = tweet.likes.filter((id) => id.toString() !== userID); //unlike
+    message="Tweet unLiked";
+  } else {
+     tweet.likes.push(userID);
+    message="Tweet liked";
+  }
+
+  await tweet.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { tweet }, "Toggled tweet like successfully!!"));
+});
