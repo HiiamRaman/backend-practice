@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { Like } from "../models/likes.model.js";
 import { Subscription } from "../models/subscription.model.js";
 import { Video } from "../models/video.model.js";
-import { populate } from "dotenv";
+
 export const getChannelStats = asynchandler(async (req, res) => {
   /* Mental Flow:
      1. Get the logged-in user ID from the request.
@@ -89,7 +89,7 @@ export const getChannelStats = asynchandler(async (req, res) => {
       new ApiResponse(200, { stats }, "channel stats fetched succesfully!!")
     );
 });
-export const getChnanelVideos = asynchandler(async (req, res) => {
+export const getChannelVideos = asynchandler(async (req, res) => {
   /*
      Mental Workflow:
     1. Extract channelID from URL params
