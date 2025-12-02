@@ -21,3 +21,4 @@ router.route("/remove/:videoID/:playlistID").patch(removeVideoFromPlaylist);
 
 
 router.route("/user/:userID").get(getUserPlaylist);
+export default router

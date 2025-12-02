@@ -21,11 +21,27 @@ app.use(
 );
 
 app.use(express.static("public")); // this line means Hey Express, whenever someone requests a file that exists in this folder, just send it directly
-app.use(cookieParser())
+app.use(cookieParser());
 
-//import  routes 
-import userRouter  from './routes/user.routes.js'
-app.use('/api/v1/user',userRouter)
+//import  routes
+import userRouter from "./routes/user.routes.js";
+import commentRouter from "./routes/comment.routes.js";
+import dashboardRouter from "./routes/dashboard.routes.js";
+import healthCheckUpRouter from "./routes/healthcheckup.routes.js";
+import likesRouter from "./routes/likes.routes.js";
+import playlistRouter from "./routes/playlist.routes.js";
+import subscriptionRouter from "./routes/subscription.routes.js";
+import tweetRouter from "./routes/tweet.routes.js";
+
+//routes declaration
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/comment", commentRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
+app.use("/api/v1/healthcheckup", healthCheckUpRouter);
+app.use("/api/v1/likes", likesRouter);
+app.use("/api/v1/playlist", playlistRouter);
+app.use("/api/v1/subscription", subscriptionRouter);
+app.use("/api/v1/tweet", tweetRouter);
 
 // ----------------- GLOBAL ERROR HANDLER -----------------
 app.use((err, req, res, next) => {
@@ -38,8 +54,4 @@ app.use((err, req, res, next) => {
   });
 });
 
-
-
 export default app;
-
-

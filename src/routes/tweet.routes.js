@@ -13,3 +13,4 @@
 
  router.route('/user/:userID').get(getUserTweets)
  router.route("/:tweetID").patch(updateTweets).delete(deleteTweets);
+ export default router
