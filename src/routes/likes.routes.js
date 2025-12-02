@@ -1,5 +1,5 @@
 import {Router} from express;
-import {toggleCommentLike,toggleVideoLike,getLikedVideo,toggleTweetLike} from '../controllers/like.controller'
+import {toggleCommentLike,toggleVideoLike,getLikedVideo,toggleTweetLike} from '../controllers/like.controller.js'
 
 import { verifyJWT } from '../middlewares/auth.middleware';
 

@@ -1,6 +1,6 @@
 import {Route} from express;
 import { verifyJWT } from "../middlewares/auth.middleware";
-import {createPlaylist,getUserPlaylist,getPlaylistById,addVideoToPlaylist,removeVideoFromPlaylist,deletePlaylist,updatePlaylist} from '../controllers/playlist.controller'
+import {createPlaylist,getUserPlaylist,getPlaylistById,addVideoToPlaylist,removeVideoFromPlaylist,deletePlaylist,updatePlaylist} from '../controllers/playlist.controller.js'
 const router= Route();
 
 
